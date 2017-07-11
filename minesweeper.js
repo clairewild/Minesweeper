@@ -14,9 +14,9 @@ class Game {
 
   run() {
     console.log("Welcome to minesweeper!");
-    // while (!this.board.won) { // FIX THIS
+    // while (!this.board.won) { // THIS DOESN'T WORK SYNCHRONOUSLY
     this.playTurn();
-
+    // }
     // console.log("You won!");
   }
 
