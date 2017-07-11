@@ -1,49 +1,45 @@
-const readline = require('readline');
+const prompt = require('prompt');
+prompt.start();
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+function onErr(err) {
+  console.log(err);
+  return 1;
+}
 
 
 class Game {
   constructor(rows, cols) {
     this.board = new Board(rows, cols);
   }
-  
+
   run() {
     console.log("Welcome to minesweeper!");
-    while (this.board.won) { // FIX THIS
-      this.board.render();
+    // while (!this.board.won) { // FIX THIS
+    this.playTurn();
 
-      this.getInput((x, y) => {
-        console.log(x)
-        if (this.board.checkMine(x, y)) {
-          console.log("You hit a mine! Game over.");
-          return;
-        }
-        else {
-          this.board.revealSquare(x, y);
-          this.board.render();
-        }
-      });
-    }
-    console.log("You won!");
+    // console.log("You won!");
+  }
+
+  playTurn() {
+    this.board.render();
+    this.getInput((x, y) => {
+      if (this.board.checkMine(x, y)) {
+        console.log("You hit a mine! Game over.");
+        return;
+      }
+      else {
+        this.board.revealSquare(x, y);
+      }
+    });
   }
 
   getInput(callback) {
-    let x = this.prompt("Enter x coordinate between 0 and " + this.board.height() + ">");
-    let y = this.prompt("Enter y coordinate between 0 and " + this.board.width() + ">");
-    callback(x, y);
-  }
-
-  prompt(question) {
-    let res;
-    rl.question(question, answer => {
-      res = answer;
-      rl.close();
+    console.log("Enter x coordinate between 0 and " + this.board.height());
+    console.log("Enter y coordinate between 0 and " + this.board.width());
+    prompt.get(['x', 'y'], (err, result) => {
+      if (err) { return onErr(err); }
+      callback(result.y, result.x);
     });
-    return res;
   }
 }
 
@@ -54,16 +50,16 @@ class Board {
     this.createGrid(rows, cols);
     this.populateGrid(rows * 2);
   }
-  
+
   createGrid(rows, cols) {
     for (let i = 0; i < rows; i++) {
       this.grid.push([]);
       for (let j = 0; j < cols; j++) {
-        this.grid[i].push(new Square()); 
+        this.grid[i].push(new Square());
       }
     }
   }
-  
+
   populateGrid(numMines) {
     let minesCount = 0;
     while (minesCount < numMines) {
@@ -74,12 +70,12 @@ class Board {
       if (!square.mine) {
         square.setMine();
         minesCount++;
-        
+
         this.adjacentSquares(x, y).forEach(square => {
           square.adjacentMines++;
         });
       }
-    } 
+    }
   }
 
   adjacentPositions(x, y) {
@@ -95,7 +91,7 @@ class Board {
     });
     return positions;
   }
-  
+
   adjacentSquares(x, y) {
     return this.adjacentPositions(x, y).map(pos => this.grid[pos[0]][pos[1]]);
   }
@@ -108,7 +104,7 @@ class Board {
 
   revealSquare(x, y) {
     let square = this.grid[x][y];
-    if (square.mine || square.revealed || square.flagged) { 
+    if (square.mine || square.revealed || square.flagged) {
       return;
     }
     else if (square.adjacentMines != 0) {
@@ -121,11 +117,11 @@ class Board {
       });
     }
   }
-  
+
   inBounds(x, y) {
     return (x >= 0 && y >= 0 && x < this.width() && y < this.height());
-  }  
-        
+  }
+
   width() {
     return this.grid.length;
   }
@@ -133,19 +129,19 @@ class Board {
   height() {
     return this.grid[0].length;
   }
-  
-  won() {  // DOESN'T WORK
+
+  won() {
     let won = true;
     this.grid.forEach(row => {
       row.forEach(square => {
-        if (square.revealed == false && !square.mine) {
+        if (!square.revealed && !square.mine) {
           won = false;
         }
       });
     });
     return won;
   }
-  
+
   render() {
     this.grid.forEach(row => {
       let rowString = row.map(square => square.toString()).join("");
@@ -154,7 +150,7 @@ class Board {
   }
 }
 
-      
+
 class Square {
   constructor() {
     this.flagged = false;
@@ -162,19 +158,19 @@ class Square {
     this.revealed = false;
     this.adjacentMines = 0;
   }
-  
+
   toggleFlag() {
     this.flagged = !this.flagged;
   }
-  
+
   setMine() {
     this.mine = true;
   }
-  
+
   reveal() {
     this.revealed = true;
   }
-  
+
   toString() {
     if (this.revealed) {
       return String(this.adjacentMines);
@@ -238,10 +234,3 @@ console.log(b.height() === 20);
 // run
 g = new Game(10, 20);
 g.run();
-
-
-
-
-
-
-
